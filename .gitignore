@@ -1,0 +1,5 @@
+*.iml
+.idea/
+.history
+target/
+src_managed/
