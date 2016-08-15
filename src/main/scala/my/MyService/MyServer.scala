@@ -65,7 +65,7 @@ class MyServer extends MyServ[Future] {
             }
           }
         }
-        case None => throw new Exception("Delete: Not found tag in database")
+        case None => throw new Exception("Delete: Not found rec in database")
       }
     Future.Unit
   }
