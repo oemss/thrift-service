@@ -43,6 +43,10 @@ class Test extends FunSpec with Matchers {
         _ <- client.add("1", "1")
         _ <- client.add("1", "2")
         _ <- client.add("1", "4")
+        _ <- client.add("5", "8")
+        _ <- client.add("5", "7")
+        _ <- client.add("6", "8")
+        _ <- client.add("6", "7")
       } yield ()
     }
 
@@ -74,9 +78,12 @@ class Test extends FunSpec with Matchers {
 
     it("Работа вывода по списку тэгов")
     {
-      Thread.sleep(75)
-      val lst = Await.result(client.listR(Seq("1","2")))
-      lst should contain only (Rt(id = "1", name = "One"),Rt(id = "2", name = "Two"))
+      Thread.sleep(70)
+      val lst = Await.result(client.listR(Seq("1","2","4")))
+      lst should contain only (Rt(id = "1", name = "One"))
+      Thread.sleep(50)
+      val lst2 = Await.result(client.listR(Seq("8","7")))
+      lst2 should contain only (Rt(id = "5", name = "Five"),Rt(id = "6", name = "Six"))
     }
     it("delete") {
       Thread.sleep(80)
@@ -118,6 +125,24 @@ class Test extends FunSpec with Matchers {
         Thread.sleep(50)
         (try {
           Await.result(client.add("13", "1"))
+          true
+        } catch {
+          case e: Throwable => false
+        }) should be(false)
+      }
+      it("Пытаемя удалить несуществующий элемент"){
+        Thread.sleep(50)
+        (try {
+          Await.result(client.delete("13", "1"))
+          true
+        } catch {
+          case e: Throwable => false
+        }) should be(false)
+
+        Thread.sleep(500)
+
+        (try {
+          Await.result(client.delete("13", "1"))
           true
         } catch {
           case e: Throwable => false
