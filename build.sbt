@@ -1,3 +1,6 @@
+import com.twitter.scrooge.ScroogeSBT
+import sbt.Keys._
+import sbt._
 name := "thrift"
 
 version := "0.1"
@@ -16,4 +19,6 @@ libraryDependencies ++= Seq(
   "org.scalamock"     %% "scalamock-scalatest-support"  % "3.2.2"         % "test"
 
 )
+concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
+
 com.twitter.scrooge.ScroogeSBT.newSettings

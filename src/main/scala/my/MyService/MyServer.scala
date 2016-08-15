@@ -91,14 +91,17 @@ class MyServer extends MyServ[Future] {
     * @return
     */
   override def listT(idR: String): Future[Seq[Rt]] = {
-    println("listT " + db)
+    println(s"listT $idR" + db)
     db.synchronized {
       val found = Functions.find(idR, rec)
+      println(s"found = $found")
       found match {
         case Some(value: Rt) =>
           val hlpval = db.get(value)
           hlpval match {
-            case Some(v: Seq[Rt]) => Future(v)
+            case Some(v: Seq[Rt]) =>
+              println(s"v = $v")
+              Future(v)
             case _ => throw new Exception("ListT: Not found in database")
           }
         case _ => throw new Exception("ListT: Not found " + idR + "in records")

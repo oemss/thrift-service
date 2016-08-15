@@ -1,10 +1,13 @@
 package my.MyService
 
+import java.io.IOException
+
 import com.twitter.finagle.Thrift
 import org.scalatest._
 import com.twitter.util.{Await, Future}
 import org.scalatest.{FunSpec, Matchers}
 import Matchers._
+import org.scalacheck.Prop.Exception
 
 /**
   * Created by evgeniy on 15.08.16.
@@ -34,55 +37,71 @@ class Test extends FunSpec with Matchers {
   ))
   Thread.sleep(2000)
   describe("first") {
-//    it("add") {
-//      for {
-//        _ <- client.add("1", "1")
-//        _ <- client.add("1", "2")
-//        _ <- client.add("1", "4")
-//      } yield ()
-//    }
-//    it("Вернуть по записи список тегов") {
-//      //val expectedSeq = (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"), Rt(id = "4", name = "Magic"))
-//      val lst = Await.result(client.listT("1"))
-//      lst should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"), Rt(id = "4", name = "Magic"))
-////      lst match {
-////        case Some(seq: Future[Seq[Rt]]) =>
-////          throw new Exception
-////        case Some(er: Future[Exception]) =>
-////      }
-//    }
-//    it("addCopy") {
-//      for {
-//        _ <- client.add("1", "1")
-//        _ <- client.add("1", "2")
-//        _ <- client.add("1", "4")
-//      } yield ()
-//    }
-//    it("Не добавляет ли копии записей?") {
-//      //val expectedSeq = Seq(Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"), Rt(id = "4", name = "Magic"))
-//      val lst = Await.result(client.listT("1"))
-//      lst should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"), Rt(id = "4", name = "Magic"))
-//    }
-    it("delete") {
+
+    it("add") {
       for {
+        _ <- client.add("1", "1")
+        _ <- client.add("1", "2")
+        _ <- client.add("1", "4")
+      } yield ()
+    }
+
+    it("Вернуть по записи список тегов") {
+      Thread.sleep(50)
+      val lst1 = Await.result(client.listT("1"))
+      lst1 should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"), Rt(id = "4", name = "Magic"))
+      for {
+        _ <- client.add("2", "1")
+        _ <- client.add("2", "4")
+      } yield ()
+      Thread.sleep(50)
+      val lst2 = Await.result(client.listT("2"))
+      lst2 should contain only (Rt(id = "1", name = "Hello"), Rt(id = "4", name = "Magic"))
+
+    }
+
+    it("Ловим ошибки") {
+      (try{
+        Await.result(client.listT("3"))
+        true
+      } catch {
+        case e: Throwable => false
+      }) should be (false)
+    }
+
+    it("Не добавляет ли копии записей?") {
+      Thread.sleep(65)
+      for {
+        _ <- client.add("1", "1")
+        _ <- client.add("1", "2")
+        _ <- client.add("1", "4")
+      } yield ()
+      Thread.sleep(70)
+      val lst = Await.result(client.listT("1"))
+      lst should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"), Rt(id = "4", name = "Magic"))
+    }
+
+    it("Работа вывода по списку тэгов")
+    {
+      Thread.sleep(75)
+      val lst = Await.result(client.listR(Seq("1","2")))
+      lst should contain only (Rt(id = "1", name = "One"),Rt(id = "2", name = "Two"))
+    }
+    it("delete") {
+      Thread.sleep(80)
+      for {
+
         _ <- client.add("1", "1")
         _ <- client.add("1", "2")
         _ <- client.add("1", "4")
         _ <- client.delete("1","4")
       } yield ()
+      Thread.sleep(85)
       val lst = Await.result(client.listT("1")).sortBy(x => x._1)
       lst should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"))
     }
-    it("Проверка удаления") {
 
-    }
-//    it("Работа вывода по списку тэгов")
-//    {
-//      val expectedSeq = Seq(Rt(id = "1", name = "One"))
-//      val lst = Await.result(client.listR(Seq("1","2")))
-//      lst should contain only expectedSeq.toBuffer
-//    }
-//    it("all close") = {
+    //    it("all close") = {
 //
 //    }
   }
