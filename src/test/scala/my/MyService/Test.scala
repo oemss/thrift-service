@@ -60,15 +60,6 @@ class Test extends FunSpec with Matchers {
 
     }
 
-    it("Ловим ошибки") {
-      (try{
-        Await.result(client.listT("3"))
-        true
-      } catch {
-        case e: Throwable => false
-      }) should be (false)
-    }
-
     it("Не добавляет ли копии записей?") {
       Thread.sleep(65)
       for {
@@ -76,7 +67,7 @@ class Test extends FunSpec with Matchers {
         _ <- client.add("1", "2")
         _ <- client.add("1", "4")
       } yield ()
-      Thread.sleep(70)
+      Thread.sleep(50)
       val lst = Await.result(client.listT("1"))
       lst should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"), Rt(id = "4", name = "Magic"))
     }
@@ -90,20 +81,49 @@ class Test extends FunSpec with Matchers {
     it("delete") {
       Thread.sleep(80)
       for {
-
-        _ <- client.add("1", "1")
-        _ <- client.add("1", "2")
-        _ <- client.add("1", "4")
         _ <- client.delete("1","4")
       } yield ()
       Thread.sleep(85)
-      val lst = Await.result(client.listT("1")).sortBy(x => x._1)
+      val lst = Await.result(client.listT("1"))
       lst should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"))
-    }
+      Thread.sleep(50)
 
-    //    it("all close") = {
-//
-//    }
+    }
+    describe("Ловим ошибки") {
+      Thread.sleep(1000)
+      it("Пытаемся вывести элемент которого нет") {
+        Thread.sleep(50)
+        (try {
+          Await.result(client.listT("3"))
+          true
+        } catch {
+          case e: Throwable => false
+        }) should be(false)
+      }
+      it("Пытаемся вывести элемент который удалили") {
+        Thread.sleep(50)
+        for {
+          _ <- client.delete("1", "2")
+          _ <- client.delete("1", "1")
+        } yield ()
+        Thread.sleep(50)
+        (try {
+          Await.result(client.listT("1"))
+          true
+        } catch {
+          case e: Throwable => false
+        }) should be(false)
+      }
+      it("Пытаемся выполнить add с элементами которых нет в начальных списках"){
+        Thread.sleep(50)
+        (try {
+          Await.result(client.add("13", "1"))
+          true
+        } catch {
+          case e: Throwable => false
+        }) should be(false)
+      }
+    }
   }
 }
 
