@@ -3,3 +3,4 @@
 .history
 target/
 src_managed/
+*.log
