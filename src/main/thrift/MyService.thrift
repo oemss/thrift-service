@@ -9,16 +9,13 @@ typedef list<rt> seq
 
 service MyServ {
 
-    void add(1: string idR,2: string idT)
+    void add(1: rt idR,2: rt idT)
 
-    void delete(1: string idR,2: string idT)
+    void delete(1: rt idR,2: rt idT)
 
-    seq listT(1: string idR)
+    seq listT(1: rt idR)
 
     seq listR(1: list<string> lstT)
-
-    void put(1: i16 where, 2: seq wt) // Функция для тетсирования
-
 
 }
 
