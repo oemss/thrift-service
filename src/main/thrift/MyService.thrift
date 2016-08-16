@@ -15,7 +15,7 @@ service MyServ {
 
     seq listT(1: rt idR)
 
-    seq listR(1: list<string> lstT)
+    seq listR(1: seq lstT)
 
 }
 

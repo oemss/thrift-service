@@ -1,6 +1,7 @@
 *.iml
+*.log
 .idea/
 .history
 target/
 src_managed/
-*.log
+

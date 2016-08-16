@@ -14,84 +14,55 @@ import org.scalacheck.Prop.Exception
   */
 class Test extends FunSpec with Matchers {
   val client = Thrift.client.newIface[MyServ[Future]]("127.0.0.1:6666")
-  client.put(0, Seq(Rt(id = "1", name = "One"),
-    Rt(id = "2", name = "Two"),
-    Rt(id = "3", name = "Three"),
-    Rt(id = "4", name = "Four"),
-    Rt(id = "5", name = "Five"),
-    Rt(id = "6", name = "Six"),
-    Rt(id = "7", name = "Seven"),
-    Rt(id = "8", name = "Eight"),
-    Rt(id = "9", name = "Nine"),
-    Rt(id = "10", name = "Ten")
-  ))
-  client.put(1, Seq(Rt(id = "1", name = "Hello"),
-    Rt(id = "2", name = "Evgeniy"),
-    Rt(id = "3", name = "World"),
-    Rt(id = "4", name = "Magic"),
-    Rt(id = "5", name = "Scala"),
-    Rt(id = "6", name = "Java"),
-    Rt(id = "7", name = "Thrift"),
-    Rt(id = "8", name = "Service"),
-    Rt(id = "9", name = "Client")
-  ))
-  Thread.sleep(2000)
+
   describe("first") {
 
-    it("add") {
-      for {
-        _ <- client.add("1", "1")
-        _ <- client.add("1", "2")
-        _ <- client.add("1", "4")
-        _ <- client.add("5", "8")
-        _ <- client.add("5", "7")
-        _ <- client.add("6", "8")
-        _ <- client.add("6", "7")
-      } yield ()
-    }
-
+    client.add(Rt(id = "1", name = "One"), Rt(id = "1", name = "Hello"))
+    client.add(Rt(id = "1", name = "One"), Rt(id = "2", name = "Evgeniy"))
+    client.add(Rt(id = "1", name = "One"), Rt(id = "4", name = "Magic"))
+    client.add(Rt(id = "5", name = "Five"), Rt(id = "8", name = "Service"))
+    client.add(Rt(id = "5", name = "Five"), Rt(id = "7", name = "Thrift"))
+    client.add(Rt(id = "6", name = "Six"), Rt(id = "8", name = "Service"))
+    client.add(Rt(id = "6", name = "Six"), Rt(id = "7", name = "Thrift"))
+    Thread.sleep(500)
     it("Вернуть по записи список тегов") {
       Thread.sleep(50)
-      val lst1 = Await.result(client.listT("1"))
+      val lst1 = Await.result(client.listT(Rt(id = "1", name = "One")))
       lst1 should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"), Rt(id = "4", name = "Magic"))
-      for {
-        _ <- client.add("2", "1")
-        _ <- client.add("2", "4")
-      } yield ()
+      client.add(Rt(id = "2", name = "Two"), Rt(id = "1", name = "Hello"))
+      client.add(Rt(id = "2", name = "Two"), Rt(id = "4", name = "Magic"))
       Thread.sleep(50)
-      val lst2 = Await.result(client.listT("2"))
+      val lst2 = Await.result(client.listT(Rt(id = "2", name = "Two")))
       lst2 should contain only (Rt(id = "1", name = "Hello"), Rt(id = "4", name = "Magic"))
 
     }
 
     it("Не добавляет ли копии записей?") {
       Thread.sleep(65)
-      for {
-        _ <- client.add("1", "1")
-        _ <- client.add("1", "2")
-        _ <- client.add("1", "4")
-      } yield ()
+
+      client.add(Rt(id = "1", name = "One"), Rt(id = "1", name = "Hello"))
+      client.add(Rt(id = "1", name = "One"), Rt(id = "2", name = "Evgeniy"))
+      client.add(Rt(id = "1", name = "One"), Rt(id = "4", name = "Magic"))
+
       Thread.sleep(50)
-      val lst = Await.result(client.listT("1"))
+      val lst = Await.result(client.listT(Rt(id = "1", name = "One")))
       lst should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"), Rt(id = "4", name = "Magic"))
     }
 
     it("Работа вывода по списку тэгов")
     {
       Thread.sleep(70)
-      val lst = Await.result(client.listR(Seq("1","2","4")))
+      val lst = Await.result(client.listR(Seq(Rt(id = "1", name = "Hello"),Rt(id = "2", name = "Evgeniy"),Rt(id = "4", name = "Magic"))))
       lst should contain only (Rt(id = "1", name = "One"))
       Thread.sleep(50)
-      val lst2 = Await.result(client.listR(Seq("8","7")))
+      val lst2 = Await.result(client.listR(Seq(Rt(id = "8", name = "Service"),Rt(id = "7", name = "Thrift"))))
       lst2 should contain only (Rt(id = "5", name = "Five"),Rt(id = "6", name = "Six"))
     }
     it("delete") {
       Thread.sleep(80)
-      for {
-        _ <- client.delete("1","4")
-      } yield ()
+      client.delete(Rt(id = "1", name = "One"),Rt(id = "4", name = "Magic"))
       Thread.sleep(85)
-      val lst = Await.result(client.listT("1"))
+      val lst = Await.result(client.listT(Rt(id = "1", name = "One")))
       lst should contain only (Rt(id = "1", name = "Hello"), Rt(id = "2", name = "Evgeniy"))
       Thread.sleep(50)
 
@@ -101,7 +72,7 @@ class Test extends FunSpec with Matchers {
       it("Пытаемся вывести элемент которого нет") {
         Thread.sleep(50)
         (try {
-          Await.result(client.listT("3"))
+          Await.result(client.listT(Rt(id = "3", name = "Three")))
           true
         } catch {
           case e: Throwable => false
@@ -109,22 +80,11 @@ class Test extends FunSpec with Matchers {
       }
       it("Пытаемся вывести элемент который удалили") {
         Thread.sleep(50)
-        for {
-          _ <- client.delete("1", "2")
-          _ <- client.delete("1", "1")
-        } yield ()
+        client.delete(Rt(id = "1", name = "One"), Rt(id = "2", name = "Evgeniy"))
+        client.delete(Rt(id = "1", name = "One"), Rt(id = "1", name = "Hello"))
         Thread.sleep(50)
         (try {
-          Await.result(client.listT("1"))
-          true
-        } catch {
-          case e: Throwable => false
-        }) should be(false)
-      }
-      it("Пытаемся выполнить add с элементами которых нет в начальных списках"){
-        Thread.sleep(50)
-        (try {
-          Await.result(client.add("13", "1"))
+          Await.result(client.listT(Rt(id = "1", name = "One")))
           true
         } catch {
           case e: Throwable => false
@@ -133,7 +93,7 @@ class Test extends FunSpec with Matchers {
       it("Пытаемя удалить несуществующий элемент"){
         Thread.sleep(50)
         (try {
-          Await.result(client.delete("13", "1"))
+          Await.result(client.delete(Rt(id = "13", name = "213"), Rt(id = "13", name = "213")))
           true
         } catch {
           case e: Throwable => false
@@ -141,12 +101,6 @@ class Test extends FunSpec with Matchers {
 
         Thread.sleep(500)
 
-        (try {
-          Await.result(client.delete("13", "1"))
-          true
-        } catch {
-          case e: Throwable => false
-        }) should be(false)
       }
     }
   }

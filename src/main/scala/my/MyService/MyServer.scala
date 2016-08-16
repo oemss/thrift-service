@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
   * Created by evgeniy on 13.08.16.
   */
 class MyServer extends MyServ[Future] {
-  var db: concurrent.Map[Rt,Seq[Rt]] = new ConcurrentHashMap[Rt, Seq[Rt]].asScala
+  var db: concurrent.Map[Rt,Seq[Rt]] = new ConcurrentHashMap[Rt, Seq[Rt]]
 
   override def add(idR: Rt, idT: Rt): Future[Unit] = {
     db.putIfAbsent(idR,Seq(idT)) match {
@@ -47,8 +47,9 @@ class MyServer extends MyServ[Future] {
     * @param lstT
     * @return
     */
-  override def listR(lstT: Seq[String]): Future[Seq[Rt]] = {
-    db.filter(w => Functions.myequal(w._2.map(x => x._1),lstT)).keySet.toSeq match {
+  override def listR(lstT: Seq[Rt]): Future[Seq[Rt]] = {
+    println(db)
+    db.filter(w => Functions.myEqual(w._2,lstT)).keySet.toSeq match {
       case vl: Seq[Rt] => Future(vl)
       case Seq()=> throw new Exception("ListR: Not found in database")
     }
