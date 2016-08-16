@@ -48,7 +48,6 @@ class MyServer extends MyServ[Future] {
     * @return
     */
   override def listR(lstT: Seq[Rt]): Future[Seq[Rt]] = {
-    println(db)
     db.filter(w => Functions.myEqual(w._2,lstT)).keySet.toSeq match {
       case vl: Seq[Rt] => Future(vl)
       case Seq()=> throw new Exception("ListR: Not found in database")
