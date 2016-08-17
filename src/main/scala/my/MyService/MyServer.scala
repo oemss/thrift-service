@@ -21,7 +21,10 @@ class MyServer extends MyServ[Future] {
 
   override def add(idR: Rt, idT: Rt): Future[Unit] = {
     db.putIfAbsent(idR,Seq(idT)) match {
-      case Some(res) => db.put(idR, res ++ Seq(idT))
+      case Some(res) => res.contains(idT) match {
+        case false => db.put(idR, res ++ Seq(idT))
+        case true =>
+      }
     }
     Future.Unit
   }
